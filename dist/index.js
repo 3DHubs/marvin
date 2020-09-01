@@ -792,7 +792,13 @@ async function checkIfAlreadyApproved(octokit, github, pullRequestNumber) {
         pull_number: pullRequestNumber,
     });
     console.log(pullRequestReviews);
-    console.log(pullRequestReviews.data.user);
+    console.log(pullRequestReviews.data[0].user);
+    for (let review of pullRequestReviews.data) {
+        if (review.state === 'APPROVED') {
+            return true;
+        }
+    }
+    return false;
 }
 async function checkIfMergeable(octokit, github, pullRequestNumber) {
     let pullRequest = await octokit.pulls.get({
@@ -867,8 +873,8 @@ async function marvin(conf) {
             process.exit(0);
         }
         // Approve the PR
-        await checkIfAlreadyApproved(octokit, github, pullRequestNumber);
-        if (conf.approve) {
+        let isAlreadyApproved = await checkIfAlreadyApproved(octokit, github, pullRequestNumber);
+        if (conf.approve && !isAlreadyApproved) {
             await approvePullRequest(octokit, github, pullRequestNumber);
         }
         // Add label

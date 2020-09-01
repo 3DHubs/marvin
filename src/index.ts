@@ -34,7 +34,7 @@ function passConfig(): Config {
     } as Config
 }
 
-function extractBranchFromPayload(github, conf){
+function extractBranchFromPayload(github, conf) {
     // Extract branch name
     const branchPullRequestResponse = github.context.payload.branches.filter((branch) => {
         return (branch.commit.sha == github.context.payload.sha
@@ -55,7 +55,7 @@ function extractBranchFromPayload(github, conf){
     return branchPullRequestResponse[0].name
 }
 
-async function extractPullRequestNumbers(octokit, github, conf){
+async function extractPullRequestNumbers(octokit, github, conf) {
     let pullRequestNumbers: Array<number>;
 
     const branchPullRequest = extractBranchFromPayload(github, conf)
@@ -94,32 +94,39 @@ async function extractPullRequestNumbers(octokit, github, conf){
     return pullRequestNumbers[0];
 }
 
-async function checkIfAlreadyApproved(octokit, github, pullRequestNumber){
-        let pullRequestReviews = await octokit.pulls.listReviews({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                pull_number: pullRequestNumber,
-        });
+async function checkIfAlreadyApproved(octokit, github, pullRequestNumber) {
+    let pullRequestReviews = await octokit.pulls.listReviews({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        pull_number: pullRequestNumber,
+    });
 
-        console.log(pullRequestReviews)
-        console.log(pullRequestReviews.data.user)
+    console.log(pullRequestReviews)
+    console.log(pullRequestReviews.data[0].user)
+
+    for(let review of pullRequestReviews.data){
+        if (review.state === 'APPROVED'){
+            return true
+        }
+    }
+    return false
 }
 
-async function checkIfMergeable(octokit, github, pullRequestNumber){
-        let pullRequest = await octokit.pulls.get({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                pull_number: pullRequestNumber,
-        });
+async function checkIfMergeable(octokit, github, pullRequestNumber) {
+    let pullRequest = await octokit.pulls.get({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        pull_number: pullRequestNumber,
+    });
 
-        if (pullRequest.data.mergeable !== true || pullRequest.data.mergeable_state !== 'clean'){
-            if (core.isDebug()) {
-                console.log(pullRequest)
-            }
-
-            core.info(`Pull request #${pullRequestNumber} is not mergeable, exiting.`)
-            process.exit(0)
+    if (pullRequest.data.mergeable !== true || pullRequest.data.mergeable_state !== 'clean') {
+        if (core.isDebug()) {
+            console.log(pullRequest)
         }
+
+        core.info(`Pull request #${pullRequestNumber} is not mergeable, exiting.`)
+        process.exit(0)
+    }
 }
 
 async function approvePullRequest(octokit, github, pullRequestNumber) {
@@ -158,8 +165,7 @@ async function mergePullRequest(octokit, github, pullRequestNumber) {
             pull_number: pullRequestNumber,
             merge_method: conf.mergeMethod
         });
-    }
-    catch(error){
+    } catch (error) {
         console.log(error)
         process.exit(0)
     }
@@ -194,8 +200,8 @@ async function marvin(conf) {
         }
 
         // Approve the PR
-        await checkIfAlreadyApproved(octokit, github, pullRequestNumber)
-        if (conf.approve) {
+        let isAlreadyApproved: boolean = await checkIfAlreadyApproved(octokit, github, pullRequestNumber)
+        if (conf.approve && !isAlreadyApproved) {
             await approvePullRequest(octokit, github, pullRequestNumber)
         }
 
