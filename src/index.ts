@@ -102,6 +102,7 @@ async function checkIfAlreadyApproved(octokit, github, pullRequestNumber){
         });
 
         console.log(pullRequestReviews)
+        console.log(pullRequestReviews.data.user)
 }
 
 async function checkIfMergeable(octokit, github, pullRequestNumber){
