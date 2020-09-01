@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "rootDir": "."
+  },
+  "extends": "./tsconfig.production.json",
+  "include": ["./**/*"],
+  "target": "es6",
+  "module": "commonjs",
+  "outDir": "./dist",
+  "rootDir": "./src",
+  "strict": true,
+  "noImplicitAny": false,
+  "esModuleInterop": true
+}

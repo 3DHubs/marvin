@@ -1,0 +1,29 @@
+name: 'marvin'
+description: 'Awesome bot which can automatically add labels, approve or merge PRs.'
+inputs:
+  token:
+    description: 'Token to authenticate with GitHub'
+    required: true
+    default: ${{ github.token }}
+  approve:
+    description: 'Whether to approve the PR'
+    default: true
+  label:
+    description: 'Label name to add to the PR'
+  sourceBranches:
+    description: 'A list of specific source branches separated by commas'
+  onlyProtectedBranches:
+    description: 'Search only PRs from protected branches'
+    default: true
+  merge:
+    description: 'Whether to merge the PR'
+    default: true
+  mergeMethod:
+    description: 'Merge method: squash, merge or rebase: default: merge'
+    default: 'merge'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+branding:
+  icon: git-merge
+  color: black
