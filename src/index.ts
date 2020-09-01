@@ -108,6 +108,7 @@ async function checkIfAlreadyApproved(octokit, github, pullRequestNumber) {
     // Check if it was already approved by Github Actions bot
     for(let review of pullRequestReviews.data){
         if (review.state === 'APPROVED' && review.user.login.includes('github-actions')){
+            core.info(`Pull request already approved`)
             return true
         }
     }
@@ -189,10 +190,10 @@ async function marvin(conf) {
         let pullRequestNumber: number | undefined;
 
         if (!github.context.payload.pull_request && github.context.payload.repository && github.context.payload.sha) {
-            core.info("Found `github.context.payload.repository` and `github.context.payload.sha`");
+            core.debug("Found `github.context.payload.repository` and `github.context.payload.sha`");
             pullRequestNumber = await extractPullRequestNumbers(octokit, github, conf);
         } else if (github.context.payload.pull_request && github.context.payload.pull_request.number) {
-            core.info("Found `github.context.payload.pull_request.number`");
+            core.debug("Found `github.context.payload.pull_request.number`");
             pullRequestNumber = github.context.payload.pull_request.number;
         }
 

@@ -797,6 +797,7 @@ async function checkIfAlreadyApproved(octokit, github, pullRequestNumber) {
     // Check if it was already approved by Github Actions bot
     for (let review of pullRequestReviews.data) {
         if (review.state === 'APPROVED' && review.user.login.includes('github-actions')) {
+            core.info(`Pull request already approved`);
             return true;
         }
     }
