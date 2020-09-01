@@ -785,6 +785,14 @@ async function extractPullRequestNumbers(octokit, github, conf) {
     // Only use the 1st pull request which is the most up to date
     return pullRequestNumbers[0];
 }
+async function checkIfAlreadyApproved(octokit, github, pullRequestNumber) {
+    let pullRequestReviews = await octokit.pulls.listReviews({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        pull_number: pullRequestNumber,
+    });
+    console.log(pullRequestReviews);
+}
 async function checkIfMergeable(octokit, github, pullRequestNumber) {
     let pullRequest = await octokit.pulls.get({
         owner: github.context.repo.owner,
@@ -792,7 +800,9 @@ async function checkIfMergeable(octokit, github, pullRequestNumber) {
         pull_number: pullRequestNumber,
     });
     if (pullRequest.data.mergeable !== true || pullRequest.data.mergeable_state !== 'clean') {
-        console.log(pullRequest);
+        if (core.isDebug()) {
+            console.log(pullRequest);
+        }
         core.info(`Pull request #${pullRequestNumber} is not mergeable, exiting.`);
         process.exit(0);
     }
@@ -856,6 +866,7 @@ async function marvin(conf) {
             process.exit(0);
         }
         // Approve the PR
+        await checkIfAlreadyApproved(octokit, github, pullRequestNumber);
         if (conf.approve) {
             await approvePullRequest(octokit, github, pullRequestNumber);
         }
