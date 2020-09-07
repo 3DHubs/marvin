@@ -809,7 +809,12 @@ async function checkIfMergeable(octokit, github, pullRequestNumber) {
         repo: github.context.repo.repo,
         pull_number: pullRequestNumber,
     });
-    if (pullRequest.data.mergeable !== true || pullRequest.data.mergeable_state !== 'clean') {
+    /* mergeable_state (src: https://typedescriptor.net/t/Octokit.MergeableState/Octokit )
+          * unstable: Failing/pending commit status that are not part of the required status checks. Merging is allowed (yellow box)
+          * clean: No conflicts, everything good. Merging is allowed (green box).
+    */
+    let mergeable_states = ['clean', 'unstable'];
+    if (pullRequest.data.mergeable !== true || mergeable_states.indexOf(pullRequest.data.mergeable_state) == -1) {
         if (core.isDebug()) {
             console.log(pullRequest);
         }
@@ -864,11 +869,11 @@ async function marvin(conf) {
         const octokit = github.getOctokit(conf.token);
         let pullRequestNumber;
         if (!github.context.payload.pull_request && github.context.payload.repository && github.context.payload.sha) {
-            core.info("Found `github.context.payload.repository` and `github.context.payload.sha`");
+            core.debug("Found `github.context.payload.repository` and `github.context.payload.sha`");
             pullRequestNumber = await extractPullRequestNumbers(octokit, github, conf);
         }
         else if (github.context.payload.pull_request && github.context.payload.pull_request.number) {
-            core.info("Found `github.context.payload.pull_request.number`");
+            core.debug("Found `github.context.payload.pull_request.number`");
             pullRequestNumber = github.context.payload.pull_request.number;
         }
         if (pullRequestNumber === undefined) {
